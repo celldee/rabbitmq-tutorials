@@ -1,18 +1,15 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require "amqp"
+require "bunny"
 
-AMQP.start(:host => "localhost") do |connection|
-  channel = AMQP::Channel.new(connection)
-  queue   = channel.queue("hello")
+connection = Bunny.new
+connection.start
 
-  channel.default_exchange.publish("Hello World!", :routing_key => queue.name)
-  puts " [x] Sent 'Hello World!'"
+channel = connection.create_channel
+queue = channel.queue("hello")
 
-  EM.add_timer(0.5) do
-    connection.close do
-      EM.stop { exit }
-    end
-  end
-end
+channel.default_exchange.publish("Hello World!", :routing_key => queue.name)
+puts " [x] Sent 'Hello World!'"
+
+connection.close
